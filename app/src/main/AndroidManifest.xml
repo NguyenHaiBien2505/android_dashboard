@@ -17,5 +17,18 @@
             </intent-filter>
         </activity>
 
+        <!-- Thêm các activity quản lý sản phẩm -->
+        <activity
+            android:name=".ProductManagementActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ProductDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ProductEditActivity"
+            android:exported="false" />
+
     </application>
 </manifest>

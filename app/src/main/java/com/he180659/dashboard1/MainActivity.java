@@ -1,14 +1,18 @@
 package com.he180659.dashboard1;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
+
+    private TextView tvQuanLySanPham;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -16,12 +20,21 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ImageView iconUser = findViewById(R.id.iconUser);
+        tvQuanLySanPham = findViewById(R.id.tvQuanLySanPham);
 
         // Xử lý click icon user
         iconUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showUserPopupMenu(v);
+            }
+        });
+
+        // Xử lý click Quản lý sản phẩm
+        tvQuanLySanPham.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openProductManagement();
             }
         });
     }
@@ -50,5 +63,11 @@ public class MainActivity extends AppCompatActivity {
         });
 
         popupMenu.show();
+    }
+
+    private void openProductManagement() {
+        // Mở màn hình quản lý sản phẩm
+        Intent intent = new Intent(MainActivity.this, ProductManagementActivity.class);
+        startActivity(intent);
     }
 }
