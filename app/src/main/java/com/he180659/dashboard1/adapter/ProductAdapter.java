@@ -1,5 +1,6 @@
 package com.he180659.dashboard1.adapter;
 
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -131,11 +132,16 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             tvProductQuantity.setText("Số lượng: " + product.getSoLuong());
             tvProductCategory.setText(getTenDanhMuc(product.getMaDanhMuc()));
 
-            // Ở đây bạn có thể load ảnh từ URL sử dụng thư viện như Glide hoặc Picasso
-            // Ví dụ: Glide.with(itemView.getContext()).load(product.getHinhAnh()).into(ivProductImage);
-
-            // Hiển thị ảnh placeholder nếu không có ảnh
-            if (product.getHinhAnh() == null || product.getHinhAnh().isEmpty()) {
+            // Hiển thị ảnh từ Base64
+            String hinhAnh = product.getHinhAnh();
+            if (hinhAnh != null && !hinhAnh.trim().isEmpty()) {
+                Bitmap bitmap = Product.base64ToBitmap(hinhAnh);
+                if (bitmap != null) {
+                    ivProductImage.setImageBitmap(bitmap);
+                } else {
+                    ivProductImage.setImageResource(R.drawable.placeholder_image);
+                }
+            } else {
                 ivProductImage.setImageResource(R.drawable.placeholder_image);
             }
         }

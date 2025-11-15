@@ -1,10 +1,15 @@
 package com.he180659.dashboard1.model;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
+
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.PrimaryKey;
 
+import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -125,5 +130,78 @@ public class Product  implements Serializable {
     // Phương thức hiển thị thông tin cơ bản
     public String getBasicInfo() {
         return tenSanPham + " - " + getFormattedPrice();
+    }
+
+    // Phương thức chuyển Bitmap sang Base64
+    public static String bitmapToBase64(Bitmap bitmap) {
+        if (bitmap == null) return "";
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+        return Base64.encodeToString(byteArray, Base64.DEFAULT);
+    }
+
+    // Phương thức chuyển Base64 sang Bitmap
+    public static Bitmap base64ToBitmap(String base64String) {
+        if (base64String == null || base64String.isEmpty()) return null;
+
+        try {
+            // Loại bỏ data URI prefix nếu có (ví dụ: "data:image/png;base64,")
+            String cleanBase64 = base64String;
+            if (base64String.contains(",")) {
+                cleanBase64 = base64String.substring(base64String.indexOf(",") + 1);
+            }
+            
+            // Loại bỏ khoảng trắng và xuống dòng
+            cleanBase64 = cleanBase64.replaceAll("\\s+", "");
+            
+            byte[] decodedBytes = Base64.decode(cleanBase64, Base64.DEFAULT);
+            if (decodedBytes == null || decodedBytes.length == 0) {
+                return null;
+            }
+            
+            Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+            return bitmap;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // Phương thức kiểm tra xem chuỗi có phải là Base64 hợp lệ không
+    public static boolean isValidBase64(String base64String) {
+        if (base64String == null || base64String.isEmpty() || base64String.trim().isEmpty()) {
+            return false;
+        }
+
+        try {
+            // Loại bỏ data URI prefix nếu có
+            String cleanBase64 = base64String;
+            if (base64String.contains(",")) {
+                cleanBase64 = base64String.substring(base64String.indexOf(",") + 1);
+            }
+            
+            // Loại bỏ khoảng trắng và xuống dòng
+            cleanBase64 = cleanBase64.replaceAll("\\s+", "");
+            
+            if (cleanBase64.isEmpty()) {
+                return false;
+            }
+            
+            // Thử decode
+            byte[] decodedBytes = Base64.decode(cleanBase64, Base64.DEFAULT);
+            
+            // Kiểm tra xem có decode được không và có tạo được bitmap không
+            if (decodedBytes == null || decodedBytes.length == 0) {
+                return false;
+            }
+            
+            // Thử tạo bitmap để đảm bảo dữ liệu hợp lệ
+            Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+            return bitmap != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

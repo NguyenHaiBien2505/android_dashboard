@@ -2,8 +2,11 @@ package com.he180659.dashboard1;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -22,6 +25,8 @@ import com.he180659.dashboard1.model.DanhMuc;
 import com.he180659.dashboard1.model.Product;
 import com.he180659.dashboard1.viewModel.ProductViewModel;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Date;
 import java.util.List;
@@ -30,6 +35,7 @@ import java.util.Locale;
 public class ProductEditActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
+    private static final int REQUEST_IMAGE_CAPTURE = 2;
 
     private ImageView ivProductImage;
     private TextView tvTitle;
@@ -41,6 +47,7 @@ public class ProductEditActivity extends AppCompatActivity {
     private EditText etSoLuong;
     private Spinner spinnerDanhMuc;
     private Button btnChangeImage;
+    private Button btnTakePhoto;
     private Button btnHuy;
     private Button btnLuu;
 
@@ -50,14 +57,13 @@ public class ProductEditActivity extends AppCompatActivity {
 
     private Product currentProduct;
     private boolean isEditMode = false;
-    private String selectedImagePath = "";
+    private String selectedImageBase64 = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_product_edit);
 
-        // Khởi tạo ViewModel
         productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
 
         initViews();
@@ -77,16 +83,20 @@ public class ProductEditActivity extends AppCompatActivity {
         etSoLuong = findViewById(R.id.etSoLuong);
         spinnerDanhMuc = findViewById(R.id.spinnerDanhMuc);
         btnChangeImage = findViewById(R.id.btnChangeImage);
+        btnTakePhoto = findViewById(R.id.btnTakePhoto);
         btnHuy = findViewById(R.id.btnHuy);
         btnLuu = findViewById(R.id.btnLuu);
 
-        // Định dạng cho giá bán
         etGiaBan.addTextChangedListener(new NumberTextWatcher(etGiaBan));
     }
 
     private void setupClickListeners() {
         btnChangeImage.setOnClickListener(v -> {
             openImagePicker();
+        });
+
+        btnTakePhoto.setOnClickListener(v -> {
+            takePhoto();
         });
 
         btnHuy.setOnClickListener(v -> {
@@ -98,13 +108,78 @@ public class ProductEditActivity extends AppCompatActivity {
         });
     }
 
+    private void openImagePicker() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        startActivityForResult(Intent.createChooser(intent, "Chọn ảnh"), PICK_IMAGE_REQUEST);
+    }
+
+    private void takePhoto() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        } else {
+            Toast.makeText(this, "Không thể mở camera", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == PICK_IMAGE_REQUEST && data != null) {
+                // Xử lý ảnh từ thư viện
+                Uri imageUri = data.getData();
+                if (imageUri != null) {
+                    try {
+                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
+                        // Resize ảnh để tránh kích thước quá lớn
+                        bitmap = resizeBitmap(bitmap, 800, 800);
+                        selectedImageBase64 = Product.bitmapToBase64(bitmap);
+                        ivProductImage.setImageBitmap(bitmap);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "Lỗi khi chọn ảnh", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            } else if (requestCode == REQUEST_IMAGE_CAPTURE && data != null) {
+                // Xử lý ảnh từ camera
+                Bundle extras = data.getExtras();
+                if (extras != null) {
+                    Bitmap imageBitmap = (Bitmap) extras.get("data");
+                    if (imageBitmap != null) {
+                        // Resize ảnh
+                        imageBitmap = resizeBitmap(imageBitmap, 800, 800);
+                        selectedImageBase64 = Product.bitmapToBase64(imageBitmap);
+                        ivProductImage.setImageBitmap(imageBitmap);
+                    }
+                }
+            }
+        }
+    }
+
+    private Bitmap resizeBitmap(Bitmap bitmap, int maxWidth, int maxHeight) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+
+        if (width > maxWidth || height > maxHeight) {
+            float ratio = Math.min((float) maxWidth / width, (float) maxHeight / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+
+            return Bitmap.createScaledBitmap(bitmap, width, height, true);
+        }
+
+        return bitmap;
+    }
+
     private void loadDanhMucData() {
         productViewModel.getAllCategories().observe(this, categories -> {
             if (categories != null && !categories.isEmpty()) {
                 danhMucList = categories;
                 setupSpinner();
 
-                // Sau khi load danh mục xong, hiển thị dữ liệu sản phẩm (nếu có)
                 if (isEditMode && currentProduct != null) {
                     displayProductData();
                 }
@@ -120,16 +195,13 @@ public class ProductEditActivity extends AppCompatActivity {
 
     private void loadProductData() {
         if (getIntent() != null && getIntent().hasExtra("PRODUCT")) {
-            // Chế độ chỉnh sửa
             isEditMode = true;
             currentProduct = (Product) getIntent().getSerializableExtra("PRODUCT");
 
             if (currentProduct != null) {
                 tvTitle.setText("CHỈNH SỬA SẢN PHẨM");
-                // Dữ liệu sản phẩm sẽ được hiển thị sau khi load danh mục xong
             }
         } else {
-            // Chế độ tạo mới
             isEditMode = false;
             tvTitle.setText("THÊM SẢN PHẨM MỚI");
             tvMaSanPhamLabel.setVisibility(View.GONE);
@@ -138,29 +210,28 @@ public class ProductEditActivity extends AppCompatActivity {
     }
 
     private void displayProductData() {
-        if (currentProduct == null) return;
+        if (currentProduct == null)
+            return;
 
-        // Hiển thị mã sản phẩm
         tvMaSanPham.setText(String.valueOf(currentProduct.getMaSanPham()));
-
-        // Hiển thị ảnh
-        if (currentProduct.getHinhAnh() != null && !currentProduct.getHinhAnh().isEmpty()) {
-            // Load ảnh từ URL (cần thư viện như Glide/Picasso)
-            // Glide.with(this).load(currentProduct.getHinhAnh()).into(ivProductImage);
-            selectedImagePath = currentProduct.getHinhAnh();
-        }
-
-        // Hiển thị thông tin
         etTenSanPham.setText(currentProduct.getTenSanPham());
         etMoTa.setText(currentProduct.getMoTa());
 
-        // Định dạng giá bán
         NumberFormat formatter = NumberFormat.getNumberInstance(Locale.getDefault());
         etGiaBan.setText(formatter.format(currentProduct.getGiaBan()));
 
         etSoLuong.setText(String.valueOf(currentProduct.getSoLuong()));
 
-        // Chọn danh mục trong spinner
+        // Hiển thị ảnh từ Base64
+        String hinhAnh = currentProduct.getHinhAnh();
+        if (hinhAnh != null && !hinhAnh.trim().isEmpty()) {
+            Bitmap bitmap = Product.base64ToBitmap(hinhAnh);
+            if (bitmap != null) {
+                ivProductImage.setImageBitmap(bitmap);
+                selectedImageBase64 = hinhAnh;
+            }
+        }
+
         if (danhMucList != null) {
             for (int i = 0; i < danhMucList.size(); i++) {
                 if (danhMucList.get(i).getMaDanhMuc() == currentProduct.getMaDanhMuc()) {
@@ -171,27 +242,7 @@ public class ProductEditActivity extends AppCompatActivity {
         }
     }
 
-    private void openImagePicker() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/*");
-        startActivityForResult(Intent.createChooser(intent, "Chọn ảnh"), PICK_IMAGE_REQUEST);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
-            Uri imageUri = data.getData();
-            if (imageUri != null) {
-                ivProductImage.setImageURI(imageUri);
-                selectedImagePath = imageUri.toString();
-            }
-        }
-    }
-
     private void saveProduct() {
-        // Validate dữ liệu
         if (!validateData()) {
             return;
         }
@@ -233,9 +284,9 @@ public class ProductEditActivity extends AppCompatActivity {
     }
 
     private void updateProduct() {
-        if (currentProduct == null) return;
+        if (currentProduct == null)
+            return;
 
-        // Cập nhật thông tin sản phẩm
         currentProduct.setTenSanPham(etTenSanPham.getText().toString().trim());
         currentProduct.setMoTa(etMoTa.getText().toString().trim());
 
@@ -247,9 +298,13 @@ public class ProductEditActivity extends AppCompatActivity {
         DanhMuc selectedDanhMuc = (DanhMuc) spinnerDanhMuc.getSelectedItem();
         currentProduct.setMaDanhMuc(selectedDanhMuc.getMaDanhMuc());
 
-        currentProduct.setHinhAnh(selectedImagePath);
+        // Lưu ảnh dạng Base64 (chỉ lưu nếu không rỗng)
+        // Khi chỉnh sửa, nếu không chọn ảnh mới thì giữ nguyên ảnh cũ
+        if (selectedImageBase64 != null && !selectedImageBase64.trim().isEmpty()) {
+            currentProduct.setHinhAnh(selectedImageBase64);
+        }
+        // Nếu selectedImageBase64 rỗng, giữ nguyên ảnh cũ (không thay đổi)
 
-        // Cập nhật vào database
         productViewModel.updateProduct(currentProduct);
 
         Toast.makeText(this, "Cập nhật sản phẩm thành công", Toast.LENGTH_SHORT).show();
@@ -257,7 +312,6 @@ public class ProductEditActivity extends AppCompatActivity {
     }
 
     private void createNewProduct() {
-        // Tạo sản phẩm mới
         Product newProduct = new Product();
         newProduct.setTenSanPham(etTenSanPham.getText().toString().trim());
         newProduct.setMoTa(etMoTa.getText().toString().trim());
@@ -270,10 +324,14 @@ public class ProductEditActivity extends AppCompatActivity {
         DanhMuc selectedDanhMuc = (DanhMuc) spinnerDanhMuc.getSelectedItem();
         newProduct.setMaDanhMuc(selectedDanhMuc.getMaDanhMuc());
 
-        newProduct.setHinhAnh(selectedImagePath);
+        // Lưu ảnh dạng Base64 (chỉ lưu nếu không rỗng)
+        if (selectedImageBase64 != null && !selectedImageBase64.trim().isEmpty()) {
+            newProduct.setHinhAnh(selectedImageBase64);
+        } else {
+            newProduct.setHinhAnh(null);
+        }
         newProduct.setNgayTao(new Date());
 
-        // Thêm vào database
         productViewModel.insertProduct(newProduct);
 
         Toast.makeText(this, "Thêm sản phẩm thành công", Toast.LENGTH_SHORT).show();

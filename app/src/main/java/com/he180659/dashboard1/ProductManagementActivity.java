@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.he180659.dashboard1.adapter.ProductAdapter;
 import com.he180659.dashboard1.model.DanhMuc;
 import com.he180659.dashboard1.model.Product;
+import com.he180659.dashboard1.utils.ResourceToBase64;
 import com.he180659.dashboard1.viewModel.ProductViewModel;
 
 import java.util.ArrayList;
@@ -161,22 +162,57 @@ public class ProductManagementActivity extends AppCompatActivity implements Prod
 
                     Thread.sleep(500);
 
-                    // Chèn sản phẩm với tên đa dạng để test tìm kiếm
+                    // Chèn sản phẩm với ảnh THẬT từ drawable
                     List<Product> sampleProducts = new ArrayList<>();
-                    sampleProducts.add(new Product("", "iPhone 14 Pro", "Điện thoại flagship của Apple",
-                            27990000, 50, 1, new Date()));
-                    sampleProducts.add(new Product("", "iPhone 13", "Điện thoại Apple thế hệ trước",
-                            19990000, 30, 1, new Date()));
-                    sampleProducts.add(new Product("", "Samsung Galaxy S23", "Điện thoại Android cao cấp",
-                            21990000, 30, 1, new Date()));
-                    sampleProducts.add(new Product("", "MacBook Air M2", "Laptop siêu mỏng nhẹ",
-                            32990000, 20, 2, new Date()));
-                    sampleProducts.add(new Product("", "Dell XPS 13", "Laptop cao cấp Dell",
-                            28990000, 15, 2, new Date()));
-                    sampleProducts.add(new Product("", "Tai nghe AirPods Pro", "Tai nghe không dây Apple",
-                            5990000, 100, 3, new Date()));
-                    sampleProducts.add(new Product("", "Apple Watch Series 8", "Đồng hồ thông minh Apple",
-                            11990000, 40, 4, new Date()));
+
+                    sampleProducts.add(new Product(
+                            ResourceToBase64.resourceToBase64(this, R.drawable.anhdt),
+                            "iPhone 14 Pro",
+                            "Điện thoại flagship của Apple với camera 48MP và chip A16 Bionic",
+                            27990000, 50, 1, new Date()
+                    ));
+
+                    sampleProducts.add(new Product(
+                            ResourceToBase64.resourceToBase64(this, R.drawable.anhdt),
+                            "iPhone 13",
+                            "Điện thoại Apple với chip A15 Bionic và thời lượng pin ấn tượng",
+                            19990000, 30, 1, new Date()
+                    ));
+
+                    sampleProducts.add(new Product(
+                            ResourceToBase64.resourceToBase64(this, R.drawable.anhdt),
+                            "Samsung Galaxy S23",
+                            "Điện thoại Android cao cấp với camera 50MP và chip Snapdragon 8 Gen 2",
+                            21990000, 30, 1, new Date()
+                    ));
+
+                    sampleProducts.add(new Product(
+                            ResourceToBase64.resourceToBase64(this, R.drawable.anhdt),
+                            "MacBook Air M2",
+                            "Laptop siêu mỏng nhẹ với chip Apple M2, màn hình Liquid Retina",
+                            32990000, 20, 2, new Date()
+                    ));
+
+                    sampleProducts.add(new Product(
+                            ResourceToBase64.resourceToBase64(this, R.drawable.anhdt),
+                            "Dell XPS 13",
+                            "Laptop cao cấp Dell với thiết kế viền màn hình InfinityEdge",
+                            28990000, 15, 2, new Date()
+                    ));
+
+                    sampleProducts.add(new Product(
+                            ResourceToBase64.resourceToBase64(this, R.drawable.anhdt),
+                            "Tai nghe AirPods Pro",
+                            "Tai nghe không dây Apple với chống ồn chủ động và tính năng Spatial Audio",
+                            5990000, 100, 3, new Date()
+                    ));
+
+                    sampleProducts.add(new Product(
+                            ResourceToBase64.resourceToBase64(this, R.drawable.anhdt),
+                            "Apple Watch Series 8",
+                            "Đồng hồ thông minh Apple với tính năng đo nhiệt độ và cảm biến va chạm",
+                            11990000, 40, 4, new Date()
+                    ));
 
                     for (Product product : sampleProducts) {
                         productViewModel.insertProduct(product);

@@ -1,5 +1,6 @@
 package com.he180659.dashboard1;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -64,9 +65,15 @@ public class ProductDetailActivity extends AppCompatActivity {
     }
 
     private void displayProductData(Product product) {
-        // Hiển thị ảnh sản phẩm (có thể dùng Glide/Picasso để load từ URL)
-        if (product.getHinhAnh() != null && !product.getHinhAnh().isEmpty()) {
-            // Glide.with(this).load(product.getHinhAnh()).into(ivProductImage);
+        // Hiển thị ảnh từ Base64
+        String hinhAnh = product.getHinhAnh();
+        if (hinhAnh != null && !hinhAnh.trim().isEmpty()) {
+            Bitmap bitmap = Product.base64ToBitmap(hinhAnh);
+            if (bitmap != null) {
+                ivProductImage.setImageBitmap(bitmap);
+            } else {
+                ivProductImage.setImageResource(R.drawable.placeholder_image);
+            }
         } else {
             ivProductImage.setImageResource(R.drawable.placeholder_image);
         }

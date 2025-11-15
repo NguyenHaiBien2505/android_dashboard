@@ -25,6 +25,30 @@
             android:layout_marginTop="66dp"/>
 
         <!-- Ảnh sản phẩm -->
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="vertical"-->
+<!--            android:gravity="center"-->
+<!--            android:layout_marginBottom="24dp">-->
+
+<!--            <ImageView-->
+<!--                android:id="@+id/ivProductImage"-->
+<!--                android:layout_width="200dp"-->
+<!--                android:layout_height="200dp"-->
+<!--                android:scaleType="centerCrop"-->
+<!--                android:src="@drawable/placeholder_image"-->
+<!--                android:background="#E0E0E0"-->
+<!--                android:layout_marginBottom="8dp" />-->
+
+<!--            <Button-->
+<!--                android:id="@+id/btnChangeImage"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="Chọn ảnh"-->
+<!--                android:textSize="14sp" />-->
+
+<!--        </LinearLayout>-->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -41,12 +65,27 @@
                 android:background="#E0E0E0"
                 android:layout_marginBottom="8dp" />
 
-            <Button
-                android:id="@+id/btnChangeImage"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Chọn ảnh"
-                android:textSize="14sp" />
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnChangeImage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chọn ảnh"
+                    android:textSize="14sp"
+                    android:layout_marginEnd="8dp" />
+
+                <Button
+                    android:id="@+id/btnTakePhoto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chụp ảnh"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
